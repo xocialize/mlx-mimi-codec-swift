@@ -15,7 +15,7 @@ let package = Package(
         .library(name: "MLXMimiCodec", targets: ["MLXMimiCodec"]),
     ],
     dependencies: [
-        .package(path: "../mlx-engine-swift"),
+        .package(url: "https://github.com/xocialize/mlx-engine-swift", from: "0.3.0"),
         .package(url: "https://github.com/xocialize/mimi-encoder-mlx-swift.git", from: "0.1.0"),
         .package(url: "https://github.com/ml-explore/mlx-swift.git", from: "0.30.0"),
         .package(url: "https://github.com/huggingface/swift-transformers", from: "1.1.6"),
