@@ -38,4 +38,9 @@ let response = try await engine.run(AudioCodecRequest(audio: clip)) as! AudioCod
 print(response.numCodebooks, response.codes.first?.count ?? 0)   // 16, T frames
 ```
 
+## Consuming it
+
+Public + version-tagged on github.com/xocialize. Add by tagged URL:
+`.package(url: "https://github.com/xocialize/mlx-mimi-codec-swift", from: "0.1.0")`, then import `MLXMimiCodec` (the conformant `audioCodec` package). Builds standalone — its engine contract (`MLXToolKit`) and model-core dependencies are tagged-URL net deps, no local checkouts.
+
 Requirements: macOS 26+ (Apple Silicon, Metal GPU). Port code MIT; weights CC-BY-4.0 (Kyutai).
