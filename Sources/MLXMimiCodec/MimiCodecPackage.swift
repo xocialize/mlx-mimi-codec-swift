@@ -2,12 +2,14 @@ import Foundation
 import AVFoundation
 import MLXToolKit
 import MLX
-import Hub
 import MimiCodecEncoder
 
 /// Errors at the Mimi package boundary.
 public enum MimiCodecError: Error, Equatable {
     case audioDecodeFailed(String)
+    /// Weight sources are missing and there is no store root (or resolved directory) to
+    /// materialize into.
+    case missingWeights(String)
 }
 
 /// An MLXEngine `audioCodec` package over **Kyutai's Mimi** neural audio codec encoder — encodes
@@ -58,11 +60,24 @@ public final class MimiCodecPackage: ModelPackage {
 
     public func load() async throws {
         guard encoder == nil else { return }
-        let hub = configuration.modelsRootDirectory.map { HubApi(downloadBase: $0) } ?? HubApi()
-        let dir = try await hub.snapshot(from: Hub.Repo(id: configuration.repo),
-                                         matching: ["encoder.safetensors"])
+        // Auto-materialize the missing checkpoint into the engine store (dir-less configs only;
+        // explicit directories never touch the network), forwarding progress via
+        // WeightDownloadProgress so the engine's PreparationMonitor surfaces `.downloading`.
+        let storeRoot = configuration.modelsRootDirectory
+        let missing = configuration.missingWeightSources(storeRoot: storeRoot)
+        if !missing.isEmpty {
+            guard let storeRoot else {
+                throw MimiCodecError.missingWeights(
+                    "no models root set and sources missing: \(missing.map(\.role).joined(separator: ", "))")
+            }
+            try await WeightMaterializer.materialize(missing, into: storeRoot)
+        }
+        try Task.checkCancellation()
+        guard let dir = configuration.resolved(storeRoot: storeRoot).modelDirectory else {
+            throw MimiCodecError.missingWeights("unresolved weights directory (no store root)")
+        }
         let enc = MimiEncoder(config: Self.encoderConfig)
-        try enc.loadWeights(from: dir.appendingPathComponent("encoder.safetensors"))
+        try enc.loadWeights(from: dir.appending(path: MimiCodecConfiguration.weightsFile))
         encoder = enc
     }
 
