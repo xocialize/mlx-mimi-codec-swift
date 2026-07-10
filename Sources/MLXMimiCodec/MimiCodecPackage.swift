@@ -86,12 +86,16 @@ public final class MimiCodecPackage: ModelPackage {
     }
 
     public func run(_ request: any CapabilityRequest) async throws -> any CapabilityResponse {
+        // CAN-1: the entry checkpoint is the FIRST act of run() — before notLoaded validation
+        // (engine ≥ 0.27.0). No mid-run checkpoints: encode() is ONE whole-clip MLX graph eval
+        // (SEANet conv → transformer → downsample → RVQ, no per-frame loop) — the CAN-3
+        // sub-second exemption.
+        try Task.checkCancellation()
         guard let encoder else { throw PackageError.notLoaded }
         guard request.capability == .audioCodec,
               let req = request as? AudioCodecRequest else {
             throw PackageError.unsupportedCapability(request.capability)
         }
-        try Task.checkCancellation()
 
         // Decode to 24 kHz mono float samples (Mimi's expected input).
         let mono = try Self.decodeMono24k(req.audio)

@@ -15,8 +15,8 @@ let package = Package(
         .library(name: "MLXMimiCodec", targets: ["MLXMimiCodec"]),
     ],
     dependencies: [
-        // Bumped to 0.23.0 for the WeightSourcing auto-materialization contract (types ≥0.19.0).
-        .package(url: "https://github.com/xocialize/mlx-engine-swift", from: "0.23.0"),
+        // Bumped to 0.27.0 for the CAN cancellation-conformance gate (CancellationConformance).
+        .package(url: "https://github.com/xocialize/mlx-engine-swift", from: "0.27.0"),
         .package(url: "https://github.com/xocialize/mimi-encoder-mlx-swift.git", from: "0.1.0"),
         .package(url: "https://github.com/ml-explore/mlx-swift.git", from: "0.30.0"),
         // Native downloader for WeightSourcing auto-materialization.
